@@ -1,0 +1,68 @@
+import { BAND_DEF } from '../src/utils/bands.js';
+
+function pred(bandKey, confidence = 'Medium') {
+  return { band: BAND_DEF[bandKey], confidence, confScore: 60 };
+}
+
+export const fixtureAreas = [
+  {
+    id: 'whitefield', name: 'Whitefield', zone: 'Mahadevapura Zone', taluk: 'Bengaluru East', tier: 'periphery',
+    lat: 12.9698, lng: 77.75, isRealAnchor: false, realNote: null,
+    talukAnchor: { delta: 5.81, drought2023: 'Extreme drought' },
+    current: 44.4, prev: 40.1, yoyPct: 10.7, fiveYrDeltaPct: 32.5,
+    borewell: 78, rechargeLevel: 'Low', rechargeScore: 28,
+    crisisScore: 55, bandKey: 'moderate', accelPct: 22, confidence: 'Medium', confScore: 58,
+    lastUpdated: '2026-06', documentedFacts: [{ text: 'Sample fact', source: 'Test Source' }],
+    water_sources: { cauvery: 18, groundwater: 62, tankers: 12, lake: 3, rainwater: 2, recycled: 1, other: 2 },
+    drinking: { ph: 7.1, tds: 620, hardness: 340, hardnessIsReal: false, hardnessRange: null, fluoride: 1.1, nitrate: 48, iron: 0.4, microbialFlag: true, uraniumFlag: true, qualityScore: 42, qualityStatus: 'Poor', availability: 'Limited (tanker/borewell dependent)', reliability: 'Medium' },
+    prediction: { h3m: pred('moderate'), h6m: pred('moderate'), h1y: pred('critical'), h3y: pred('critical'), h5y: pred('critical') },
+    drivers: ['Groundwater is declining faster than the Bengaluru city-wide average', 'High dependency on private borewells for daily supply'],
+    recommendations: [{ title: 'Increase groundwater recharge', body: 'Recharge wells, lake restoration.' }],
+    hist: [{ year: 2015, level: 20, rainfall_mm: 1000, rainIdx: 1 }, { year: 2024, level: 40, rainfall_mm: 1080, rainIdx: 1.1 }, { year: 2026, level: 44.4, rainfall_mm: 780, rainIdx: 0.8 }],
+  },
+  {
+    id: 'jayanagar', name: 'Jayanagar', zone: 'South Zone', taluk: 'Bengaluru South', tier: 'core',
+    lat: 12.925, lng: 77.5938, isRealAnchor: false, realNote: null,
+    talukAnchor: { delta: 0.7, drought2023: 'Moderate drought', approx: true },
+    current: 14.2, prev: 14.0, yoyPct: 1.4, fiveYrDeltaPct: 4.2,
+    borewell: 32, rechargeLevel: 'High', rechargeScore: 72,
+    crisisScore: 18, bandKey: 'healthy', accelPct: 2, confidence: 'High', confScore: 80,
+    lastUpdated: '2026-06', documentedFacts: [],
+    water_sources: { cauvery: 62, groundwater: 25, tankers: 3, lake: 4, rainwater: 3, recycled: 2, other: 1 },
+    drinking: { ph: 7.4, tds: 280, hardness: 195, hardnessIsReal: true, hardnessRange: '170-220 ppm', fluoride: 0.5, nitrate: 15, iron: 0.1, microbialFlag: false, uraniumFlag: false, qualityScore: 88, qualityStatus: 'Good', availability: 'Reliable (mostly piped)', reliability: 'High' },
+    prediction: { h3m: pred('healthy'), h6m: pred('healthy'), h1y: pred('watch'), h3y: pred('watch'), h5y: pred('moderate') },
+    drivers: ['Relatively balanced water-source mix with moderate borewell reliance'],
+    recommendations: [{ title: 'Maintain current trajectory', body: 'Continue existing recharge practices.' }],
+    hist: [{ year: 2015, level: 13, rainfall_mm: 1000, rainIdx: 1 }, { year: 2024, level: 13.9, rainfall_mm: 1080, rainIdx: 1.1 }, { year: 2026, level: 14.2, rainfall_mm: 780, rainIdx: 0.8 }],
+  },
+  {
+    id: 'devanahalli', name: 'Devanahalli', zone: 'Bengaluru Rural District (separate from BBMP)', taluk: 'Devanahalli (Bengaluru Rural)', tier: 'periphery',
+    lat: 13.2437, lng: 77.7145, isRealAnchor: true, realNote: 'REAL, exact: 32.2 -> 73.74 mbgl.',
+    talukAnchor: null,
+    current: 91.0, prev: 82.5, yoyPct: 10.3, fiveYrDeltaPct: 65,
+    borewell: 88, rechargeLevel: 'Low', rechargeScore: 15,
+    crisisScore: 92, bandKey: 'critical', accelPct: 30, confidence: 'High', confScore: 82,
+    lastUpdated: '2026-06', documentedFacts: [{ text: 'Depth roughly doubled 2015-2024.', source: 'ThePrint, 6 Jun 2025' }],
+    water_sources: { cauvery: 6, groundwater: 78, tankers: 12, lake: 1, rainwater: 1, recycled: 1, other: 1 },
+    drinking: { ph: 7.8, tds: 880, hardness: 480, hardnessIsReal: false, hardnessRange: null, fluoride: 1.6, nitrate: 68, iron: 0.7, microbialFlag: true, uraniumFlag: true, qualityScore: 22, qualityStatus: 'Critical', availability: 'Limited (tanker/borewell dependent)', reliability: 'High' },
+    prediction: { h3m: pred('critical'), h6m: pred('critical'), h1y: pred('critical'), h3y: pred('critical'), h5y: pred('critical') },
+    drivers: ['Groundwater is declining faster than the Bengaluru city-wide average', 'High dependency on private borewells for daily supply', 'Low natural recharge potential'],
+    recommendations: [{ title: 'Increase groundwater recharge', body: 'Urgent recharge intervention needed.' }],
+    hist: [{ year: 2015, level: 32.2, rainfall_mm: 1000, rainIdx: 1 }, { year: 2024, level: 73.7, rainfall_mm: 1080, rainIdx: 1.1 }, { year: 2026, level: 91, rainfall_mm: 780, rainIdx: 0.8 }],
+  },
+  {
+    id: 'yelahanka', name: 'Yelahanka', zone: 'Yelahanka Zone', taluk: 'Yelahanka', tier: 'periphery',
+    lat: 13.1007, lng: 77.5963, isRealAnchor: false, realNote: null,
+    talukAnchor: { delta: 7.31, drought2023: 'Moderate drought' },
+    current: 48.0, prev: 43.0, yoyPct: 11.6, fiveYrDeltaPct: 40,
+    borewell: 70, rechargeLevel: 'Low', rechargeScore: 30,
+    crisisScore: 63, bandKey: 'high', accelPct: 15, confidence: 'Medium', confScore: 55,
+    lastUpdated: '2026-06', documentedFacts: [],
+    water_sources: { cauvery: 20, groundwater: 60, tankers: 12, lake: 3, rainwater: 2, recycled: 1, other: 2 },
+    drinking: { ph: 7.3, tds: 590, hardness: 310, hardnessIsReal: false, hardnessRange: null, fluoride: 1.0, nitrate: 40, iron: 0.3, microbialFlag: false, uraniumFlag: true, qualityScore: 50, qualityStatus: 'Watch', availability: 'Intermittent', reliability: 'Medium' },
+    prediction: { h3m: pred('high'), h6m: pred('high'), h1y: pred('high'), h3y: pred('critical'), h5y: pred('critical') },
+    drivers: ['Groundwater is declining faster than the Bengaluru city-wide average', 'High dependency on private borewells for daily supply'],
+    recommendations: [{ title: 'Increase groundwater recharge', body: 'Recharge wells needed.' }],
+    hist: [{ year: 2015, level: 30, rainfall_mm: 1000, rainIdx: 1 }, { year: 2024, level: 45, rainfall_mm: 1080, rainIdx: 1.1 }, { year: 2026, level: 48, rainfall_mm: 780, rainIdx: 0.8 }],
+  },
+];

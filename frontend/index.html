@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bengaluru Groundwater &amp; Water Scarcity Intelligence</title>
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#0E1B24">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+<div id="app">
+
+  <header class="top">
+    <div class="top-row">
+      <div class="brand-group">
+        <div class="brandmark" aria-hidden="true"></div>
+        <div>
+          <h1>Bengaluru Groundwater &amp; Water Scarcity Intelligence</h1>
+          <div class="tagline">Where the crisis is happening, why, how fast, and what could come next</div>
+        </div>
+      </div>
+    </div>
+    <div class="disclaimer-bar" role="note">
+      <span aria-hidden="true">ⓘ</span>
+      <span><strong>Data &amp; AI disclaimer:</strong> This prototype is built from <span class="real-tag">REAL</span> published figures — Karnataka Minor Irrigation Dept taluk-level groundwater change, CGWB depth bulletins, the 2023 statewide drought declaration, IMD rainfall records, BWSSB Cauvery Stage I–V capacity, CGWB's 2023 rural water-quality assessment, an IISc lake-area study, and named locality reports (all cited with dates and links in <em>Data Sources</em>). No public feed gives a verified daily reading for all 28 localities shown, so each area's year-by-year trajectory and quality indicators are <span class="real-tag">REAL‑CALIBRATED</span> — generated once and blended to match the real taluk/zone anchor for that area — rather than a live per-street measurement. All forecasts, crisis scores and "what‑if" results remain model estimates for exploration &mdash; not official government warnings or guaranteed outcomes.</span>
+      <button class="close-x" id="dismiss-disclaimer" aria-label="Dismiss disclaimer banner">✕</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" aria-label="Main sections" id="main-tabs">
+    <button role="tab" aria-selected="true" data-tab="map">Map</button>
+    <button role="tab" aria-selected="false" data-tab="list">List View</button>
+    <button role="tab" aria-selected="false" data-tab="compare">Compare Areas</button>
+    <button role="tab" aria-selected="false" data-tab="warnings">Early Warning</button>
+    <button role="tab" aria-selected="false" data-tab="scenario">What‑If Simulator</button>
+    <button role="tab" aria-selected="false" data-tab="sources">Data Sources</button>
+    <button role="tab" aria-selected="false" data-tab="ai">Ask Bengaluru Water AI</button>
+  </nav>
+
+  <main>
+    <!-- ================= MAP TAB ================= -->
+    <section id="tab-map" class="tab-panel active" role="tabpanel">
+      <div id="dashboard-cards" class="summary-grid"></div>
+
+      <div class="map-controls">
+        <div class="ctrl-group" style="min-width:210px;">
+          <label for="layer-select">Data layer</label>
+          <select id="layer-select">
+            <option value="crisis">Water Stress / Crisis Score</option>
+            <option value="current">Current Groundwater Level</option>
+            <option value="decline">Groundwater Decline (YoY)</option>
+            <option value="recharge">Groundwater Recharge Potential</option>
+            <option value="borewell">Borewell Dependency</option>
+            <option value="drinking">Drinking Water Availability</option>
+            <option value="cauvery">Cauvery Water Supply Share</option>
+            <option value="quality">Groundwater / Drinking Quality</option>
+            <option value="rainfall">Rainfall (selected year)</option>
+            <option value="prediction">Water Scarcity Prediction</option>
+          </select>
+        </div>
+        <div class="ctrl-group" id="horizon-group" style="display:none; min-width:150px;">
+          <label for="horizon-select">Prediction horizon</label>
+          <select id="horizon-select">
+            <option value="h3m">3 months</option>
+            <option value="h6m">6 months</option>
+            <option value="h1y" selected>1 year</option>
+            <option value="h3y">3 years</option>
+            <option value="h5y">5 years</option>
+          </select>
+        </div>
+        <div class="ctrl-group">
+          <label id="time-label">Time / Year</label>
+          <div class="preset-row" role="group" aria-labelledby="time-label">
+            <button data-preset="latest" aria-pressed="true">Latest</button>
+            <button data-preset="3m">Last 3 mo</button>
+            <button data-preset="1y">Last 1 yr</button>
+            <button data-preset="5y">Last 5 yrs</button>
+            <button data-preset="10y">Last 10 yrs</button>
+          </div>
+        </div>
+        <div class="ctrl-group time-ctrl" style="flex:2;">
+          <label for="year-slider">Timeline (drag or press play)</label>
+          <div style="display:flex; align-items:center; gap:8px; width:100%;">
+            <button class="icon-btn" id="play-btn" aria-label="Play timeline animation from 2015 to latest">▶ Play</button>
+            <input type="range" id="year-slider" min="0" max="11" value="11" aria-describedby="year-readout">
+            <span class="year-readout mono" id="year-readout">2026</span>
+          </div>
+        </div>
+        <div class="ctrl-group">
+          <label>Water infrastructure layer</label>
+          <div class="infra-toggles">
+            <label><input type="checkbox" id="toggle-lakes"> Lakes &amp; tanks</label>
+            <label><input type="checkbox" id="toggle-shapes" checked> Shape + color coding</label>
+          </div>
+        </div>
+        <div class="ctrl-group search-row">
+          <label for="area-search">Search an area</label>
+          <input type="text" id="area-search" placeholder="e.g. Whitefield, Yelahanka…" autocomplete="off">
+          <div id="search-results" role="listbox"></div>
+        </div>
+      </div>
+
+      <div class="map-wrap">
+        <div class="map-col">
+          <div id="map-canvas" role="application" aria-label="Interactive map of Bengaluru groundwater monitoring points, colored and shaped by selected data layer"></div>
+          <p style="font-size:0.72rem; color:var(--muted); margin-top:8px;">
+            Map shows <strong>locality-level monitoring points</strong> (in the style of CGWB's well/piezometer network), not official BBMP ward polygons — those can be layered in once an authoritative ward-boundary GeoJSON is connected. Every marker is available in accessible form in <button id="link-to-list" style="background:none;border:0;color:var(--accent-ink);text-decoration:underline;cursor:pointer;padding:0;font:inherit;">List View</button>.
+          </p>
+        </div>
+        <div class="depth-gauge" id="depth-gauge" aria-hidden="false">
+          <h3>Depth &amp; Crisis Gauge</h3>
+          <div class="sub" id="gauge-context">Water Stress / Crisis Score (0–100)</div>
+          <div class="gauge-shaft" id="gauge-shaft"></div>
+          <div class="gauge-note">Shape and color both encode severity so the map never relies on color alone. Bands are explainable, not a black box — click any point for the "why".</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= LIST TAB ================= -->
+    <section id="tab-list" class="tab-panel" role="tabpanel">
+      <div class="list-toolbar">
+        <input type="search" id="list-search" placeholder="Search areas…" style="min-width:200px;">
+        <select id="list-sort">
+          <option value="crisis-desc">Crisis: Highest → Lowest</option>
+          <option value="crisis-asc">Crisis: Lowest → Highest</option>
+          <option value="level-desc">Groundwater: Deepest first</option>
+          <option value="level-asc">Groundwater: Shallowest first</option>
+          <option value="decline-desc">Decline: Fastest first</option>
+          <option value="decline-asc">Decline: Slowest first</option>
+          <option value="pred-desc">Prediction: Highest future risk</option>
+          <option value="pred-asc">Prediction: Lowest future risk</option>
+          <option value="conf-desc">Data: Highest confidence</option>
+          <option value="conf-asc">Data: Lowest confidence</option>
+        </select>
+        <select id="list-filter-band">
+          <option value="all">All crisis bands</option>
+          <option value="Healthy">Healthy</option>
+          <option value="Watch">Watch</option>
+          <option value="Moderate Risk">Moderate Risk</option>
+          <option value="High Risk">High Risk</option>
+          <option value="Critical">Critical</option>
+        </select>
+        <span style="font-size:0.78rem; color:var(--muted); align-self:center;" id="list-count"></span>
+      </div>
+      <div class="scroll-x">
+        <table class="area-table" id="area-table">
+          <thead><tr>
+            <th>Area</th><th>Zone</th><th>Current GW (m bgl)</th><th>Δ vs prev yr</th><th>5‑yr trend</th>
+            <th>Crisis Score</th><th>Water Stress</th><th>GW Dependency</th><th>Drinking Risk</th><th>1‑yr Prediction</th><th>Confidence</th>
+          </tr></thead>
+          <tbody id="area-table-body"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ================= COMPARE TAB ================= -->
+    <section id="tab-compare" class="tab-panel" role="tabpanel">
+      <h3 style="margin-bottom:10px;">Compare 2–4 areas</h3>
+      <div class="ctrl-group search-row" style="max-width:360px; margin-bottom:10px;">
+        <input type="text" id="compare-search" placeholder="Add an area to compare…">
+        <div id="compare-search-results" role="listbox"></div>
+      </div>
+      <div class="compare-picker" id="compare-picker"></div>
+      <div id="compare-empty" style="color:var(--muted); font-size:0.86rem;">Pick at least two areas above (e.g. Whitefield, Koramangala, Yelahanka, Jayanagar) to see a synchronized comparison.</div>
+      <div id="compare-content" style="display:none;">
+        <div class="section-card">
+          <h4>Historical groundwater level (m below ground level)</h4>
+          <div class="chart-box"><canvas id="compare-line-chart"></canvas></div>
+        </div>
+        <div class="compare-grid" id="compare-cards"></div>
+      </div>
+    </section>
+
+    <!-- ================= WARNINGS TAB ================= -->
+    <section id="tab-warnings" class="tab-panel" role="tabpanel">
+      <h3 style="margin-bottom:6px;">Early Warning System</h3>
+      <p style="font-size:0.82rem; color:var(--muted); margin-top:0;">Areas flagged automatically where decline is accelerating, recharge is falling behind, or the model projects an escalation in risk band within 12 months.</p>
+      <div id="warnings-list" style="margin-top:14px;"></div>
+    </section>
+
+    <!-- ================= SCENARIO TAB ================= -->
+    <section id="tab-scenario" class="tab-panel" role="tabpanel">
+      <h3 style="margin-bottom:6px;">"What If?" Scenario Simulator</h3>
+      <p style="font-size:0.82rem; color:var(--muted); margin-top:0; max-width:640px;">Adjust assumptions for a chosen area and see how the model's water-scarcity trajectory shifts. This is a simplified illustrative model, not a hydrogeological simulation.</p>
+      <div class="scenario-grid" style="margin-top:12px;">
+        <div>
+          <div class="ctrl-group" style="margin-bottom:16px;">
+            <label for="scenario-area">Area</label>
+            <select id="scenario-area"></select>
+          </div>
+          <div class="slider-row">
+            <label>Rainfall change <span class="mono" id="s-rain-val">0%</span></label>
+            <input type="range" id="s-rain" min="-40" max="40" value="0">
+            <div class="hint">Simulate a wetter or drier year vs. baseline.</div>
+          </div>
+          <div class="slider-row">
+            <label>Groundwater extraction change <span class="mono" id="s-extract-val">0%</span></label>
+            <input type="range" id="s-extract" min="-30" max="40" value="0">
+            <div class="hint">More borewells / higher demand vs. baseline.</div>
+          </div>
+          <div class="slider-row">
+            <label>Rainwater harvesting uptake <span class="mono" id="s-rwh-val">0%</span></label>
+            <input type="range" id="s-rwh" min="0" max="60" value="0">
+            <div class="hint">Share of buildings adding RWH structures.</div>
+          </div>
+          <div class="slider-row">
+            <label>Recycled water substitution <span class="mono" id="s-recycled-val">0%</span></label>
+            <input type="range" id="s-recycled" min="0" max="50" value="0">
+            <div class="hint">Non-potable demand met by treated/recycled water.</div>
+          </div>
+          <div class="slider-row">
+            <label style="display:flex; gap:8px; align-items:center;"><input type="checkbox" id="s-lake" style="width:auto;"> Lake &amp; recharge-well restoration</label>
+            <div class="hint">Adds a flat recharge-potential boost.</div>
+          </div>
+          <button class="ghost-btn" id="s-reset">Reset scenario</button>
+        </div>
+        <div>
+          <div class="section-card">
+            <h4>Crisis Score — baseline vs simulated</h4>
+            <div id="scenario-score-row" style="display:flex; gap:26px; align-items:baseline; margin-bottom:10px;">
+              <div><div class="big-readout" id="s-score-baseline">–</div><div class="lbl" style="font-size:0.72rem;color:var(--muted);">Baseline</div></div>
+              <div style="font-size:1.4rem; color:var(--muted-2);">→</div>
+              <div><div class="big-readout" id="s-score-sim">–</div><div class="lbl" style="font-size:0.72rem;color:var(--muted);">Simulated</div></div>
+            </div>
+            <div class="chart-box"><canvas id="scenario-chart"></canvas></div>
+          </div>
+          <div class="section-card">
+            <h4>Predicted water scarcity trajectory</h4>
+            <table class="pred-table" id="scenario-pred-table"></table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= SOURCES TAB ================= -->
+    <section id="tab-sources" class="tab-panel" role="tabpanel">
+      <h3 style="margin-bottom:6px;">Data Provenance</h3>
+      <p style="font-size:0.82rem; color:var(--muted); max-width:760px;">This prototype is built so each of these could be swapped for a live feed behind a small internal API layer (<code>/data/groundwater</code>, <code>/data/rainfall</code>, <code>/data/water-sources</code>, <code>/data/water-quality</code>, <code>/data/predictions</code>) without changing the UI. Every card below marked <span class="real-tag">REAL</span> is an exact or directly-cited published figure with a date and outlet; the model card at the end is the one part of this app that is explicitly a computed estimate rather than a measurement. Where a real figure exists only at taluk, zone or city level (not for all 28 individual localities), this app blends each locality's modeled trajectory to match that real anchor — flagged <span class="real-tag">REAL‑CALIBRATED</span> throughout the Map, List and Area panels — rather than presenting an unverified number as if it were a direct reading.</p>
+      <div class="source-grid" id="source-grid" style="margin-top:12px;"></div>
+    </section>
+
+    <!-- ================= AI TAB ================= -->
+    <section id="tab-ai" class="tab-panel" role="tabpanel">
+      <h3 style="margin-bottom:6px;">Ask Bengaluru Water AI</h3>
+      <p style="font-size:0.82rem; color:var(--muted); margin-top:0;">Answers are computed live from this app's own dataset (not general knowledge) — try one of the suggestions or type your own.</p>
+      <div class="ai-panel">
+        <div class="ai-log" id="ai-log" role="log" aria-live="polite"></div>
+        <div class="ai-suggest" id="ai-suggest"></div>
+        <form class="ai-input-row" id="ai-form">
+          <label for="ai-input" class="sr-only">Ask a question about Bengaluru's water data</label>
+          <input type="text" id="ai-input" placeholder="e.g. Why is Whitefield at high risk?">
+          <button type="submit">Ask</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    Prototype dashboard · Illustrative/demo data unless marked <span class="real-tag">REAL</span> · Predictions are model estimates, not official forecasts · Built for exploration of a possible Bengaluru groundwater intelligence product.
+  </footer>
+</div>
+
+<div id="drawer-backdrop"></div>
+<aside class="drawer" id="drawer" aria-hidden="true" aria-label="Area detail panel">
+  <div class="drawer-head">
+    <div class="brandmark" aria-hidden="true" style="width:26px;height:26px;"></div>
+    <div class="titles">
+      <h2 id="drawer-title">Area</h2>
+      <div class="zone" id="drawer-zone">Zone</div>
+    </div>
+    <button class="drawer-close" id="drawer-close" aria-label="Close area panel">✕</button>
+  </div>
+  <div class="drawer-body" id="drawer-body">
+    <div class="drawer-subtabs" role="tablist" aria-label="Area detail sections" id="drawer-subtabs">
+      <button role="tab" aria-selected="true" data-sub="overview">Overview</button>
+      <button role="tab" aria-selected="false" data-sub="trend">Historical Trend</button>
+      <button role="tab" aria-selected="false" data-sub="sources">Water Sources</button>
+      <button role="tab" aria-selected="false" data-sub="drinking">Drinking Water</button>
+      <button role="tab" aria-selected="false" data-sub="prediction">Prediction</button>
+      <button role="tab" aria-selected="false" data-sub="recommend">Recommendations</button>
+    </div>
+    <div id="sub-overview" class="subpanel active"></div>
+    <div id="sub-trend" class="subpanel"></div>
+    <div id="sub-sources" class="subpanel"></div>
+    <div id="sub-drinking" class="subpanel"></div>
+    <div id="sub-prediction" class="subpanel"></div>
+    <div id="sub-recommend" class="subpanel"></div>
+  </div>
+</aside>
+
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>

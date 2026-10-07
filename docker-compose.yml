@@ -1,0 +1,32 @@
+services:
+  backend:
+    build: ./backend
+    ports:
+      - "4000:4000"
+    volumes:
+      - bwi-db:/app/data
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DB_PATH: /app/data/app.db
+      # Change these two for any real deployment:
+      ADMIN_API_KEY: ${ADMIN_API_KEY:-dev-only-change-me}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:8080}
+      REFRESH_CRON: ${REFRESH_CRON:-0 3 * * *}
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        # Baked in at build time — must match where `backend` is reachable
+        # from the *browser*, not from inside the Docker network.
+        VITE_API_BASE_URL: ${PUBLIC_API_BASE_URL:-http://localhost:4000}
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  bwi-db:
